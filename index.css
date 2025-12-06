@@ -1,0 +1,124 @@
+/* HERO */
+.hero-section {
+    background: linear-gradient(135deg, var(--dark) 0%, #1e293b 100%);
+    color: #fff;
+    padding: 110px 0 80px;
+}
+
+.hero-content {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 3rem;
+    align-items: center;
+}
+
+.hero-text h1 {
+    font-size: 2.6rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+}
+
+.hero-text p {
+    font-size: 1.05rem;
+    opacity: .9;
+    margin-bottom: 1.5rem;
+    max-width: 460px;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.hero-side {
+    display: grid;
+    gap: 1rem;
+}
+
+.hero-card {
+    background: rgba(255, 255, 255, .08);
+    border-radius: 16px;
+    padding: 1.4rem 1.2rem;
+    border: 1px solid rgba(255, 255, 255, .2);
+}
+
+.hero-card h3 {
+    font-size: 1.05rem;
+    margin-bottom: 0.4rem;
+}
+
+/* FEATURES */
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+}
+
+.feature-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 1.8rem;
+    box-shadow: var(--shadow);
+    text-align: center;
+}
+
+.feature-icon {
+    font-size: 1.7rem;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #eff6ff;
+    color: var(--primary);
+    margin-bottom: 0.75rem;
+}
+
+/* STEPS */
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.3rem;
+}
+
+.step-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 1.4rem;
+    box-shadow: var(--shadow);
+}
+
+.step-card h4 {
+    font-size: 1.05rem;
+    margin-bottom: 0.4rem;
+}
+
+.step-card p {
+    font-size: 0.95rem;
+    color: #4b5563;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+    .hero-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .hero-text p {
+        max-width: none;
+    }
+}
+
+@media (max-width: 600px) {
+    .hero-text h1 {
+        font-size: 2rem;
+    }
+
+    .hero-section {
+        padding: 90px 0 60px;
+    }
+}

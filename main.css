@@ -1,0 +1,131 @@
+/* BASE + THEME */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --dark: #0f172a;
+    --light: #f8fafc;
+    --shadow: 0 10px 40px rgba(0, 0, 0, .08);
+}
+
+body {
+    font-family: system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+    color: #111827;
+    background: var(--light);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.main-content {
+    padding-top: 80px;  /* offset for fixed header */
+    padding-bottom: 40px;
+}
+
+/* GENERIC SECTIONS */
+.section {
+    padding: 70px 0;
+}
+
+.section-light {
+    background: #ffffff;
+}
+
+.section-muted {
+    background: #f3f4f6;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.section-header h2 {
+    font-size: 2.1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.section-header p {
+    font-size: 1rem;
+    color: #6b7280;
+}
+
+/* BUTTONS */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem 1.2rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border: 2px solid transparent;
+    text-decoration: none;
+    transition: .2s;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: #fff;
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.btn-secondary:hover {
+    background: var(--primary);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.btn-large {
+    padding: 0.85rem 1.9rem;
+    font-size: 1rem;
+}
+
+/* FOOTER BASE (structure refined in footer.css) */
+.footer {
+    background: var(--dark);
+    color: #9ca3af;
+}
+
+/* RESPONSIVE GLOBAL */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 12px;
+    }
+    .main-content {
+        padding-top: 80px;
+    }
+}
+
+@media (max-width: 480px) {
+    .section {
+        padding: 60px 0;
+    }
+}

@@ -1,0 +1,137 @@
+/* dashboard.css */
+
+.dashboard-hero {
+    background: linear-gradient(135deg, var(--dark) 0%, #020617 100%);
+    color: #e5e7eb;
+    padding: 40px 0 50px;
+}
+
+.dashboard-hero-inner {
+    background: #020617;
+    border-radius: 24px;
+    padding: 24px 20px 28px;
+    box-shadow: 0 18px 60px rgba(0,0,0,0.5);
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    gap: 2rem;
+    align-items: center;
+}
+
+.dashboard-hero-text h1 {
+    font-size: 1.9rem;
+    font-weight: 600;
+    margin-bottom: 0.6rem;
+}
+
+.dashboard-hero-text p {
+    font-size: 0.95rem;
+    color: #9ca3af;
+}
+
+.dashboard-hero-sub {
+    margin-top: 0.4rem;
+}
+
+.dashboard-hero-cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.9rem;
+}
+
+.summary-card {
+    background: rgba(15,23,42,0.95);
+    border-radius: 18px;
+    padding: 1rem 1.2rem;
+    border: 1px solid rgba(148,163,184,0.4);
+}
+
+.summary-label {
+    font-size: 0.85rem;
+    color: #9ca3af;
+    margin-bottom: 0.2rem;
+}
+
+.summary-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #f9fafb;
+}
+
+.summary-actions {
+    margin-top: 0.3rem;
+    font-size: 0.85rem;
+}
+
+.summary-actions a {
+    color: #60a5fa;
+    text-decoration: none;
+}
+
+.summary-actions a:hover {
+    text-decoration: underline;
+}
+
+/* Quick actions section */
+.dashboard-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.3rem;
+}
+
+.dashboard-action-card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 1.4rem 1.3rem;
+    box-shadow: var(--shadow);
+}
+
+.dashboard-action-card h3 {
+    font-size: 1.05rem;
+    margin-bottom: 0.4rem;
+}
+
+.dashboard-action-card p {
+    font-size: 0.95rem;
+    color: #4b5563;
+    margin-bottom: 0.7rem;
+}
+
+/* Roadmap section */
+.dashboard-roadmap-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.2rem;
+}
+
+.roadmap-item {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 1.3rem;
+    box-shadow: var(--shadow);
+}
+
+.roadmap-item h4 {
+    font-size: 1.02rem;
+    margin-bottom: 0.3rem;
+}
+
+.roadmap-item p {
+    font-size: 0.94rem;
+    color: #4b5563;
+}
+
+/* Responsive tweaks */
+@media (max-width: 900px) {
+    .dashboard-hero-inner {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .dashboard-hero {
+        padding: 30px 0 40px;
+    }
+    .dashboard-hero-text h1 {
+        font-size: 1.6rem;
+    }
+}
