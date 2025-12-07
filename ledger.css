@@ -1,0 +1,173 @@
+/* Container/layout helpers */
+.dashboard-tables {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.dashboard-table {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+}
+
+/* Section headings inside cards */
+.dashboard-table h4 {
+    margin-bottom: 1rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+/* Generic table styling */
+.dashboard-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.dashboard-table th {
+    background: #f3f4f6;
+    padding: 0.6rem;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+}
+
+.dashboard-table td {
+    padding: 0.6rem;
+    border-bottom: 1px solid #e5e7eb;
+    color: #4b5563;
+}
+
+/* Subtle zebra rows (optional) */
+.dashboard-table tbody tr:nth-child(even) {
+    background-color: #f9fafb;
+}
+
+/* Empty text */
+.empty-text {
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+/* Simple alert reused from other pages */
+.alert {
+    margin: 0.75rem 0 1rem;
+    padding: 0.6rem 0.9rem;
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 0.9rem;
+}
+
+/* Vertical form inside cards */
+.form-vertical .form-group {
+    margin-bottom: 0.9rem;
+}
+
+.form-vertical label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+.form-vertical input[type="text"],
+.form-vertical input[type="number"],
+.form-vertical input[type="date"],
+.form-vertical select,
+.form-vertical textarea {
+    width: 100%;
+    padding: 0.5rem 0.6rem;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    font-size: 0.9rem;
+    color: #111827;
+    background-color: #ffffff;
+}
+
+.form-vertical textarea {
+    resize: vertical;
+    min-height: 60px;
+}
+
+.form-vertical small {
+    display: block;
+    margin-top: 0.15rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+/* Actions in forms */
+.form-actions {
+    margin-top: 0.75rem;
+    display: flex;
+    gap: 0.75rem;
+}
+
+/* Buttons (reuse your main button styles if already defined) */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem 1.2rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border: 2px solid transparent;
+    text-decoration: none;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-primary {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+.btn-outline-small {
+    padding: 0.4rem 0.9rem;
+    font-size: 0.85rem;
+}
+
+/* Responsive: stack cards on small screens */
+@media (max-width: 768px) {
+    .dashboard-tables {
+        grid-template-columns: 1fr;
+    }
+}
+.stats-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:1.2rem;
+}
+.stat-card{
+    background:#fff;
+    border-radius:16px;
+    padding:1rem 1.2rem;
+    box-shadow:0 10px 40px rgba(0,0,0,.08);
+}
+.stat-card.highlight{
+    border-top:3px solid #2563eb;
+}
+.stat-value{
+    font-size:1.4rem;
+    font-weight:700;
+    color:#111827;
+}
+.stat-label{
+    font-size:0.85rem;
+    color:#6b7280;
+}

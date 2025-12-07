@@ -4,14 +4,15 @@ require_once 'auth.php';
 require_owner_login();
 
 // Fetch buildings for dropdown
-$buildingsResult = $conn->query('SELECT id, name FROM buildings ORDER BY name');
+$buildingsResult = $conn->query("SELECT id, name FROM buildings ORDER BY name");
 $buildings = [];
 while ($row = $buildingsResult->fetch_assoc()) {
     $buildings[] = $row;
 }
 
 // Check if any tenants exist
-$tenantsCount = (int)$conn->query('SELECT COUNT(*) AS c FROM tenants')->fetch_assoc()['c'];
+$tenantsCountResult = $conn->query("SELECT COUNT(*) as c FROM tenants");
+$tenantsCount = $tenantsCountResult->fetch_assoc()['c'];
 
 // Handle filters
 $filterBuildingId = isset($_GET['building_id']) ? (int)$_GET['building_id'] : 0;
@@ -22,36 +23,48 @@ $filterStatus     = trim($_GET['status'] ?? '');
 // Build WHERE clause
 $whereConditions = [];
 $params = [];
-$types  = '';
+$types = '';
 
 if ($filterBuildingId > 0) {
     $whereConditions[] = 'u.building_id = ?';
     $params[] = $filterBuildingId;
-    $types .= 'i';
+    $types   .= 'i';
 }
 if ($filterFloor !== '') {
     $whereConditions[] = 'u.floor = ?';
     $params[] = $filterFloor;
-    $types .= 's';
+    $types   .= 's';
 }
 if ($filterType !== '') {
     $whereConditions[] = 'u.unit_type = ?';
     $params[] = $filterType;
-    $types .= 's';
+    $types   .= 's';
 }
 if ($filterStatus !== '') {
     $whereConditions[] = 'u.status = ?';
     $params[] = $filterStatus;
-    $types .= 's';
+    $types   .= 's';
 }
 
 $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
 
-$sql = "SELECT u.*, b.name AS building_name
-        FROM units u
-        LEFT JOIN buildings b ON u.building_id = b.id
-        $whereClause
-        ORDER BY u.building_id, u.floor, u.id";
+// ----- SINGLE QUERY: Units + Tenant Info + Current Assignment -----
+$sql = "
+    SELECT 
+        u.*,
+        b.name AS building_name,
+        ua.id AS current_assignment_id,
+        t.full_name,
+        t.phone_number
+    FROM units u 
+    LEFT JOIN buildings b       ON u.building_id = b.id
+    LEFT JOIN unit_assignments ua 
+           ON u.id = ua.unit_id 
+          AND ua.end_date IS NULL
+    LEFT JOIN tenants t         ON ua.tenant_id = t.id
+    $whereClause 
+    ORDER BY u.building_id, u.floor, u.id
+";
 
 $stmt = $conn->prepare($sql);
 if (!empty($params)) {
@@ -59,18 +72,19 @@ if (!empty($params)) {
 }
 $stmt->execute();
 $result = $stmt->get_result();
-$units  = [];
+$units = [];
 while ($row = $result->fetch_assoc()) {
     $units[] = $row;
 }
 $stmt->close();
 
-// handle flash message
+// Handle flash message
 $message = '';
 if (isset($_GET['msg'])) {
-    if ($_GET['msg'] === 'added')   $message = 'Unit added successfully.';
-    if ($_GET['msg'] === 'updated') $message = 'Unit updated successfully.';
-    if ($_GET['msg'] === 'deleted') $message = 'Unit deleted.';
+    if ($_GET['msg'] === 'added')    $message = 'Unit added successfully.';
+    if ($_GET['msg'] === 'updated')  $message = 'Unit updated successfully.';
+    if ($_GET['msg'] === 'deleted')  $message = 'Unit deleted successfully.';
+    if ($_GET['msg'] === 'assigned') $message = 'Tenant assigned successfully.';
 }
 
 // ADD unit
@@ -78,12 +92,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_unit'])) {
     $buildingId = (int)($_POST['building_id'] ?? 0);
     $unitName   = trim($_POST['unit_name'] ?? '');
     $floor      = trim($_POST['floor'] ?? '');
-    $unitType   = trim($_POST['unit_type'] ?? '');
+    $unitType   = $_POST['unit_type'] ?? '';
     $amenities  = trim($_POST['amenities'] ?? '');
-    $status     = trim($_POST['status'] ?? '');
+    $status     = $_POST['status'] ?? '';
 
-    if ($buildingId > 0 && $unitName !== '' && $unitType !== '' && $status !== '') {
-        $stmt = $conn->prepare('INSERT INTO units (building_id, unit_name, floor, unit_type, amenities, status) VALUES (?, ?, ?, ?, ?, ?)');
+    if ($buildingId > 0 && $unitName && $unitType && $status) {
+        $stmt = $conn->prepare("
+            INSERT INTO units (building_id, unit_name, floor, unit_type, amenities, status) 
+            VALUES (?, ?, ?, ?, ?, ?)
+        ");
         $stmt->bind_param('isssss', $buildingId, $unitName, $floor, $unitType, $amenities, $status);
         if ($stmt->execute()) {
             $stmt->close();
@@ -103,12 +120,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_unit'])) {
     $buildingId = (int)($_POST['building_id'] ?? 0);
     $unitName   = trim($_POST['unit_name'] ?? '');
     $floor      = trim($_POST['floor'] ?? '');
-    $unitType   = trim($_POST['unit_type'] ?? '');
+    $unitType   = $_POST['unit_type'] ?? '';
     $amenities  = trim($_POST['amenities'] ?? '');
-    $status     = trim($_POST['status'] ?? '');
+    $status     = $_POST['status'] ?? '';
 
-    if ($id > 0 && $buildingId > 0 && $unitName !== '') {
-        $stmt = $conn->prepare('UPDATE units SET building_id=?, unit_name=?, floor=?, unit_type=?, amenities=?, status=? WHERE id=?');
+    if ($id > 0 && $buildingId > 0 && $unitName) {
+        $stmt = $conn->prepare("
+            UPDATE units 
+               SET building_id=?, unit_name=?, floor=?, unit_type=?, amenities=?, status=? 
+             WHERE id=?
+        ");
         $stmt->bind_param('isssssi', $buildingId, $unitName, $floor, $unitType, $amenities, $status, $id);
         if ($stmt->execute()) {
             $stmt->close();
@@ -180,30 +201,27 @@ include 'header.php';
                         <select name="building_id">
                             <option value="">All buildings</option>
                             <?php foreach ($buildings as $b): ?>
-                                <option value="<?php echo (int)$b['id']; ?>"
-                                    <?php echo $filterBuildingId === (int)$b['id'] ? 'selected' : ''; ?>>
+                                <option value="<?php echo (int)$b['id']; ?>" <?php echo $filterBuildingId === (int)$b['id'] ? 'selected' : ''; ?>>
                                     <?php echo htmlspecialchars($b['name']); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
                     </div>
-					<div class="filter-group">
-					    <label>Floor</label>
-					    <select name="floor">
-					        <option value="">All floors</option>
-					        <option value="0"  <?php echo $filterFloor === '0'  ? 'selected' : ''; ?>>Ground</option>
-					        <option value="1"  <?php echo $filterFloor === '1'  ? 'selected' : ''; ?>>1st</option>
-					        <option value="2"  <?php echo $filterFloor === '2'  ? 'selected' : ''; ?>>2nd</option>
-					        <option value="3"  <?php echo $filterFloor === '3'  ? 'selected' : ''; ?>>3rd</option>
-					        <!-- add more as needed -->
-					    </select>
-					</div>
-
+                    <div class="filter-group">
+                        <label>Floor</label>
+                        <select name="floor">
+                            <option value="">All floors</option>
+                            <option value="0" <?php echo $filterFloor === '0' ? 'selected' : ''; ?>>Ground</option>
+                            <option value="1" <?php echo $filterFloor === '1' ? 'selected' : ''; ?>>1st</option>
+                            <option value="2" <?php echo $filterFloor === '2' ? 'selected' : ''; ?>>2nd</option>
+                            <option value="3" <?php echo $filterFloor === '3' ? 'selected' : ''; ?>>3rd</option>
+                        </select>
+                    </div>
                     <div class="filter-group">
                         <label>Status</label>
                         <select name="status">
                             <option value="">All Status</option>
-                            <option value="Vacant"   <?php echo $filterStatus === 'Vacant'   ? 'selected' : ''; ?>>Vacant</option>
+                            <option value="Vacant"   <?php echo $filterStatus === 'Vacant' ? 'selected' : ''; ?>>Vacant</option>
                             <option value="Occupied" <?php echo $filterStatus === 'Occupied' ? 'selected' : ''; ?>>Occupied</option>
                         </select>
                     </div>
@@ -221,10 +239,9 @@ include 'header.php';
                 </form>
             </div>
 
-            <?php if ($tenantsCount === 0): ?>
+            <?php if ($tenantsCount == 0): ?>
                 <div class="alert alert-warning">
-                    <strong>No tenants yet.</strong>
-                    Create tenants first → <a href="tenants.php">Go to Tenants</a>
+                    <strong>No tenants yet.</strong> Create tenants first <a href="tenants.php">Go to Tenants</a>
                 </div>
             <?php endif; ?>
 
@@ -232,37 +249,43 @@ include 'header.php';
                 <!-- LEFT: Units list -->
                 <div class="section">
                     <h2 class="section-title">Units List (<?php echo count($units); ?>)</h2>
-
                     <?php if (empty($units)): ?>
                         <p class="empty-text">No units match your filters. Adjust filters or add a unit.</p>
                     <?php else: ?>
                         <?php foreach ($units as $unit): ?>
                             <div class="unit-item">
-							<div class="unit-main" 
-							     <?php if ($unit['amenities']): ?>
-							         title="<?php echo htmlspecialchars($unit['amenities']); ?>"
-							     <?php endif; ?>
-							>
-							    <h3 class="unit-name">
-							        <?php echo htmlspecialchars($unit['building_name'] . ' - ' . $unit['unit_name']); ?>
-							        <span class="unit-type-pill">
-							            <?php echo htmlspecialchars($unit['unit_type']); ?>
-							        </span>
-							    </h3>
-<!--
-							    <p class="unit-building-floor">
-							        <?php if ($unit['floor']): ?>
-							            Floor: <?php echo htmlspecialchars($unit['floor']); ?>
-							        <?php endif; ?>
-							    </p>
--->
-							    <p class="unit-status-line">
-							        Status:
-							        <span class="status-text status-text-<?php echo strtolower($unit['status']); ?>">
-							            <?php echo htmlspecialchars($unit['status']); ?>
-							        </span>
-							    </p>
-							</div>
+                                <div class="unit-main">
+                                    <?php if (!empty($unit['amenities'])): ?>
+                                        <!-- amenities pill (optional) -->
+                                    <?php endif; ?>
+
+                                    <h3 class="unit-name">
+                                        <?php echo htmlspecialchars($unit['building_name'] . ' - ' . $unit['unit_name']); ?>
+                                        <span class="unit-type-pill"><?php echo htmlspecialchars($unit['unit_type']); ?></span>
+                                    </h3>
+
+                                    <?php if (!empty($unit['floor'])): ?>
+                                        <p class="unit-building-floor">Floor <?php echo htmlspecialchars($unit['floor']); ?></p>
+                                    <?php endif; ?>
+
+                                    <p class="unit-status-line">
+                                        Status
+                                        <span class="status-text status-text-<?php echo strtolower($unit['status']); ?>">
+                                            <?php echo htmlspecialchars($unit['status']); ?>
+                                        </span>
+                                    </p>
+
+                                    <?php if ($unit['status'] === 'Occupied' && $unit['full_name']): ?>
+                                        <p>
+                                            <strong>
+                                                <a href="tenant_profile.php?assignment_id=<?php echo (int)$unit['current_assignment_id']; ?>">
+                                                    <?php echo htmlspecialchars($unit['full_name']); ?>
+                                                </a>
+                                            </strong><br>
+                                            <!-- <small><?php echo htmlspecialchars($unit['phone_number']); ?></small> -->
+                                        </p>
+                                    <?php endif; ?>
+                                </div>
 
                                 <div class="unit-actions">
                                     <div class="unit-actions-row">
@@ -291,21 +314,18 @@ include 'header.php';
                 <!-- RIGHT: Add/Edit form -->
                 <div class="section">
                     <h2 class="section-title"><?php echo $editUnit ? 'Edit Unit' : 'Add New Unit'; ?></h2>
-
                     <form method="post" class="form-vertical">
                         <?php if ($editUnit): ?>
                             <input type="hidden" name="id" value="<?php echo (int)$editUnit['id']; ?>">
                         <?php endif; ?>
 
                         <div class="form-group">
-                            <label for="building_id">Building *</label>
+                            <label for="building_id">Building</label>
                             <select id="building_id" name="building_id" required>
                                 <option value="">Select building</option>
                                 <?php foreach ($buildings as $b): ?>
                                     <option value="<?php echo (int)$b['id']; ?>"
-                                        <?php
-                                        if ($editUnit && $editUnit['building_id'] == $b['id']) echo 'selected';
-                                        ?>>
+                                        <?php echo ($editUnit && $editUnit['building_id'] == $b['id']) || ($filterBuildingId == $b['id']) ? 'selected' : ''; ?>>
                                         <?php echo htmlspecialchars($b['name']); ?>
                                     </option>
                                 <?php endforeach; ?>
@@ -313,7 +333,7 @@ include 'header.php';
                         </div>
 
                         <div class="form-group">
-                            <label for="unit_name">Unit name *</label>
+                            <label for="unit_name">Unit name</label>
                             <input type="text" id="unit_name" name="unit_name" required maxlength="100"
                                    value="<?php echo $editUnit ? htmlspecialchars($editUnit['unit_name']) : ''; ?>"
                                    placeholder="e.g. Room 101, Shop 2">
@@ -327,7 +347,7 @@ include 'header.php';
                         </div>
 
                         <div class="form-group">
-                            <label for="unit_type">Type *</label>
+                            <label for="unit_type">Type</label>
                             <select id="unit_type" name="unit_type" required>
                                 <option value="Room" <?php echo ($editUnit && $editUnit['unit_type'] === 'Room') ? 'selected' : ''; ?>>Room</option>
                                 <option value="Shop" <?php echo ($editUnit && $editUnit['unit_type'] === 'Shop') ? 'selected' : ''; ?>>Shop</option>
@@ -343,9 +363,9 @@ include 'header.php';
                         </div>
 
                         <div class="form-group">
-                            <label for="status">Status *</label>
+                            <label for="status">Status</label>
                             <select id="status" name="status" required>
-                                <option value="Vacant" <?php echo ($editUnit && $editUnit['status'] === 'Vacant') ? 'selected' : ''; ?>>Vacant</option>
+                                <option value="Vacant"   <?php echo ($editUnit && $editUnit['status'] === 'Vacant')   ? 'selected' : ''; ?>>Vacant</option>
                                 <option value="Occupied" <?php echo ($editUnit && $editUnit['status'] === 'Occupied') ? 'selected' : ''; ?>>Occupied</option>
                             </select>
                         </div>

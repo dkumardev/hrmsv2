@@ -20,19 +20,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_tenant'])) {
     $id_proof_type   = trim($_POST['id_proof_type'] ?? '');
     $id_proof_number = trim($_POST['id_proof_number'] ?? '');
     $tenant_status   = $_POST['tenant_status'] ?? 'New';
+    $id_proof_file   = null;
 
-    $id_proof_file = null;
-
-    if ($full_name !== '' && $father_name !== '' && $phone_number !== '') {
+    if ($full_name && $father_name && $phone_number) {
         if (!empty($_FILES['id_proof_file']['name'])) {
             $uploadDir = 'id_proofs/';
             if (!is_dir($uploadDir)) {
-                @mkdir($uploadDir, 0775, true);
+                mkdir($uploadDir, 0775, true);
             }
-            $ext        = pathinfo($_FILES['id_proof_file']['name'], PATHINFO_EXTENSION);
-            $safeName   = preg_replace('/[^a-z0-9]+/i', '_', strtolower($full_name));
-            $safePhone  = preg_replace('/\D+/', '', $phone_number);
-            $newFileName = $safeName . '_' . $safePhone . '.' . $ext;
+            $ext       = pathinfo($_FILES['id_proof_file']['name'], PATHINFO_EXTENSION);
+            $safeName  = preg_replace('/[^a-z0-9]/i', '', strtolower($full_name));
+            $safePhone = preg_replace('/[^0-9]/', '', $phone_number);
+            $newFileName = $safeName . '_' . $safePhone . '_' . $id_proof_type . '.' . $ext;
             $targetPath  = $uploadDir . $newFileName;
 
             if (move_uploaded_file($_FILES['id_proof_file']['tmp_name'], $targetPath)) {
@@ -41,8 +40,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_tenant'])) {
         }
 
         $stmt = $conn->prepare(
-            'INSERT INTO tenants (full_name, father_name, phone_number, current_address, id_proof_type, id_proof_number, id_proof_file, tenant_status)
-             VALUES (?,?,?,?,?,?,?,?)'
+            "INSERT INTO tenants 
+             (full_name, father_name, phone_number, current_address, id_proof_type, id_proof_number, id_proof_file, tenant_status)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         );
         $stmt->bind_param(
             'ssssssss',
@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_tenant'])) {
 
 // ----- UPDATE TENANT -----
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_tenant'])) {
-    $id              = (int)($_POST['id'] ?? 0);
+    $id             = (int)($_POST['id'] ?? 0);
     $full_name       = trim($_POST['full_name'] ?? '');
     $father_name     = trim($_POST['father_name'] ?? '');
     $phone_number    = trim($_POST['phone_number'] ?? '');
@@ -77,19 +77,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_tenant'])) {
     $id_proof_type   = trim($_POST['id_proof_type'] ?? '');
     $id_proof_number = trim($_POST['id_proof_number'] ?? '');
     $tenant_status   = $_POST['tenant_status'] ?? 'New';
-
     $id_proof_file   = $_POST['existing_id_proof_file'] ?? null;
 
-    if ($id > 0 && $full_name !== '' && $father_name !== '' && $phone_number !== '') {
+    if ($id > 0 && $full_name && $father_name && $phone_number) {
         if (!empty($_FILES['id_proof_file']['name'])) {
             $uploadDir = 'id_proofs/';
             if (!is_dir($uploadDir)) {
-                @mkdir($uploadDir, 0775, true);
+                mkdir($uploadDir, 0775, true);
             }
-            $ext        = pathinfo($_FILES['id_proof_file']['name'], PATHINFO_EXTENSION);
-            $safeName   = preg_replace('/[^a-z0-9]+/i', '_', strtolower($full_name));
-            $safePhone  = preg_replace('/\D+/', '', $phone_number);
-            $newFileName = $safeName . '_' . $safePhone . '.' . $ext;
+            $ext       = pathinfo($_FILES['id_proof_file']['name'], PATHINFO_EXTENSION);
+            $safeName  = preg_replace('/[^a-z0-9]/i', '', strtolower($full_name));
+            $safePhone = preg_replace('/[^0-9]/', '', $phone_number);
+            $newFileName = $safeName . '_' . $safePhone . '_' . $id_proof_type . '.' . $ext;
             $targetPath  = $uploadDir . $newFileName;
 
             if (move_uploaded_file($_FILES['id_proof_file']['tmp_name'], $targetPath)) {
@@ -98,9 +97,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_tenant'])) {
         }
 
         $stmt = $conn->prepare(
-            'UPDATE tenants
-             SET full_name=?, father_name=?, phone_number=?, current_address=?, id_proof_type=?, id_proof_number=?, id_proof_file=?, tenant_status=?
-             WHERE id=?'
+            "UPDATE tenants 
+             SET full_name=?, father_name=?, phone_number=?, current_address=?, 
+                 id_proof_type=?, id_proof_number=?, id_proof_file=?, tenant_status=?
+             WHERE id=?"
         );
         $stmt->bind_param(
             'ssssssssi',
@@ -154,25 +154,43 @@ if ($filterStatus !== '') {
     $types      .= 's';
 }
 
-// ----- FETCH TENANTS -----
+// ----- FETCH TENANTS + ASSIGNED UNITS -----
 $tenants = [];
-$sql = 'SELECT * FROM tenants ' . $whereClause . ' ORDER BY id DESC';
+$sql = "
+    SELECT t.*, 
+           GROUP_CONCAT(
+               CONCAT(b.name, '-', u.unit_name)
+               SEPARATOR ', '
+           ) AS assigned_units
+    FROM tenants t
+    LEFT JOIN unit_assignments ua 
+        ON t.id = ua.tenant_id 
+       AND ua.end_date IS NULL
+    LEFT JOIN units u 
+        ON ua.unit_id = u.id
+    LEFT JOIN buildings b 
+        ON u.building_id = b.id
+    $whereClause
+    GROUP BY t.id
+    ORDER BY 
+        CASE t.tenant_status
+            WHEN 'New'      THEN 1
+            WHEN 'Active'   THEN 2
+            WHEN 'Inactive' THEN 3
+        END,
+        t.full_name
+";
 
+$stmt = $conn->prepare($sql);
 if (!empty($params)) {
-    $stmt = $conn->prepare($sql);
     $stmt->bind_param($types, ...$params);
-    $stmt->execute();
-    $result = $stmt->get_result();
-} else {
-    $result = $conn->query($sql);
 }
-
+$stmt->execute();
+$result = $stmt->get_result();
 while ($row = $result->fetch_assoc()) {
     $tenants[] = $row;
 }
-if (isset($stmt) && $stmt) {
-    $stmt->close();
-}
+$stmt->close();
 
 // ----- EDIT MODE -----
 $editTenant = null;
@@ -208,16 +226,15 @@ include 'header.php';
                 <div class="alert"><?php echo htmlspecialchars($message); ?></div>
             <?php endif; ?>
 
-            <!-- Status filter (same layout as units filter) -->
+            <!-- Status filter -->
             <div class="filters-section">
                 <form method="get" class="filters-form" id="tenantFilterForm">
                     <div class="filter-group">
                         <label for="status">Status</label>
-                        <select id="status" name="status"
-                                onchange="document.getElementById('tenantFilterForm').submit()">
+                        <select id="status" name="status" onchange="document.getElementById('tenantFilterForm').submit()">
                             <option value="">All Status</option>
-                            <option value="New"      <?php echo $filterStatus === 'New'      ? 'selected' : ''; ?>>New</option>
-                            <option value="Active"   <?php echo $filterStatus === 'Active'   ? 'selected' : ''; ?>>Active</option>
+                            <option value="New"      <?php echo $filterStatus === 'New' ? 'selected' : ''; ?>>New</option>
+                            <option value="Active"   <?php echo $filterStatus === 'Active' ? 'selected' : ''; ?>>Active</option>
                             <option value="Inactive" <?php echo $filterStatus === 'Inactive' ? 'selected' : ''; ?>>Inactive</option>
                         </select>
                     </div>
@@ -227,9 +244,7 @@ include 'header.php';
             <div class="dashboard-grid">
                 <!-- LEFT: Tenants list -->
                 <div class="section">
-                    <div class="section-header-row">
-                        <h2 class="section-title">Tenants List (<?php echo count($tenants); ?>)</h2>
-                    </div>
+                    <h2 class="section-title">Tenants List (<?php echo count($tenants); ?>)</h2>
 
                     <?php if (empty($tenants)): ?>
                         <p class="empty-text">
@@ -245,10 +260,14 @@ include 'header.php';
                                             <?php echo htmlspecialchars($tenant['tenant_status']); ?>
                                         </span>
                                     </h3>
+                                    <p class="tenant-meta"><?php echo htmlspecialchars($tenant['father_name']); ?></p>
+                                    <p class="tenant-meta"><?php echo htmlspecialchars($tenant['phone_number']); ?></p>
 
-                                    <p class="tenant-meta">
-                                        <?php echo htmlspecialchars($tenant['phone_number']); ?>
-                                    </p>
+									<?php if (!empty($tenant['assigned_units'])): ?>
+									    <p class="tenant-units-info">
+									        <strong><?php echo htmlspecialchars($tenant['assigned_units']); ?></strong>
+									    </p>
+									<?php endif; ?>
 
                                     <?php if (!empty($tenant['current_address'])): ?>
                                         <p class="tenant-meta small">
@@ -256,16 +275,15 @@ include 'header.php';
                                         </p>
                                     <?php endif; ?>
 
-                                    <?php if (!empty($tenant['id_proof_type']) || !empty($tenant['id_proof_number'])): ?>
+                                    <?php if (!empty($tenant['id_proof_type']) || !empty($tenant['id_proof_number']) || !empty($tenant['id_proof_file'])): ?>
                                         <p class="tenant-meta small">
-                                            ID: <?php echo htmlspecialchars($tenant['id_proof_type']); ?>
+                                            ID:
+                                            <?php echo htmlspecialchars($tenant['id_proof_type'] ?: 'N/A'); ?>
                                             <?php if (!empty($tenant['id_proof_number'])): ?>
-                                                • <?php echo htmlspecialchars($tenant['id_proof_number']); ?>
+                                                - <?php echo htmlspecialchars($tenant['id_proof_number']); ?>
                                             <?php endif; ?>
                                             <?php if (!empty($tenant['id_proof_file'])): ?>
-                                                • <a href="<?php echo htmlspecialchars($tenant['id_proof_file']); ?>" target="_blank">
-                                                    View file
-                                                  </a>
+                                                · <a href="<?php echo htmlspecialchars($tenant['id_proof_file']); ?>" target="_blank">View file</a>
                                             <?php endif; ?>
                                         </p>
                                     <?php endif; ?>
@@ -273,20 +291,15 @@ include 'header.php';
 
                                 <div class="tenant-actions">
                                     <div class="tenant-actions-row">
-                                        <a href="assign_tenant.php" class="btn btn-primary btn-outline-small">
-                                            Assign to unit
-                                        </a>
+                                        <a href="assign_tenant.php?tenant_id=<?php echo (int)$tenant['id']; ?>"
+                                           class="btn btn-primary btn-outline-small">Assign to unit</a>
                                         <a href="tenants.php?edit_id=<?php echo (int)$tenant['id']; ?>"
-                                           class="btn btn-secondary btn-outline-small">
-                                            Edit
-                                        </a>
+                                           class="btn btn-secondary btn-outline-small">Edit</a>
                                         <form method="post" class="inline-form"
                                               onsubmit="return confirm('Delete this tenant? Make sure there are no assignments.');">
                                             <input type="hidden" name="id" value="<?php echo (int)$tenant['id']; ?>">
                                             <button type="submit" name="delete_tenant"
-                                                    class="btn btn-danger btn-outline-small">
-                                                Delete
-                                            </button>
+                                                    class="btn btn-danger btn-outline-small">Delete</button>
                                         </form>
                                     </div>
                                 </div>
@@ -297,10 +310,7 @@ include 'header.php';
 
                 <!-- RIGHT: Add/Edit form -->
                 <div class="section">
-                    <h2 class="section-title">
-                        <?php echo $editTenant ? 'Edit Tenant' : 'Add New Tenant'; ?>
-                    </h2>
-
+                    <h2 class="section-title"><?php echo $editTenant ? 'Edit Tenant' : 'Add New Tenant'; ?></h2>
                     <form method="post" enctype="multipart/form-data" class="form-vertical">
                         <?php if ($editTenant): ?>
                             <input type="hidden" name="id" value="<?php echo (int)$editTenant['id']; ?>">
@@ -309,26 +319,26 @@ include 'header.php';
                         <?php endif; ?>
 
                         <div class="form-group">
-                            <label for="full_name">Full name *</label>
-                            <input type="text" id="full_name" name="full_name" required
+                            <label for="full_name">Full name</label>
+                            <input type="text" id="full_name" name="full_name" required maxlength="150"
                                    value="<?php echo $editTenant ? htmlspecialchars($editTenant['full_name']) : ''; ?>">
                         </div>
 
                         <div class="form-group">
-                            <label for="father_name">Father name *</label>
-                            <input type="text" id="father_name" name="father_name" required
+                            <label for="father_name">Father name</label>
+                            <input type="text" id="father_name" name="father_name" required maxlength="150"
                                    value="<?php echo $editTenant ? htmlspecialchars($editTenant['father_name']) : ''; ?>">
                         </div>
 
                         <div class="form-group">
-                            <label for="phone_number">Phone number *</label>
-                            <input type="text" id="phone_number" name="phone_number" required
+                            <label for="phone_number">Phone number</label>
+                            <input type="text" id="phone_number" name="phone_number" required maxlength="20"
                                    value="<?php echo $editTenant ? htmlspecialchars($editTenant['phone_number']) : ''; ?>">
                         </div>
 
                         <div class="form-group">
                             <label for="current_address">Current address</label>
-                            <textarea id="current_address" name="current_address" rows="2"
+                            <textarea id="current_address" name="current_address" rows="2" maxlength="255"
                                       placeholder="Street, area, city"><?php
                                 echo $editTenant ? htmlspecialchars($editTenant['current_address']) : '';
                             ?></textarea>
@@ -339,12 +349,10 @@ include 'header.php';
                             <select id="id_proof_type" name="id_proof_type">
                                 <option value="">Select</option>
                                 <?php
-                                $types = ['Aadhar','PAN','Voter ID','Driving License','Passport','Other'];
+                                $types       = ['Aadhar', 'PAN', 'Voter ID', 'Driving License', 'Passport', 'Other'];
                                 $currentType = $editTenant ? ($editTenant['id_proof_type'] ?? '') : '';
-                                foreach ($types as $t):
-                                ?>
-                                    <option value="<?php echo $t; ?>"
-                                        <?php echo $currentType === $t ? 'selected' : ''; ?>>
+                                foreach ($types as $t): ?>
+                                    <option value="<?php echo $t; ?>" <?php echo $currentType === $t ? 'selected' : ''; ?>>
                                         <?php echo $t; ?>
                                     </option>
                                 <?php endforeach; ?>
@@ -353,7 +361,7 @@ include 'header.php';
 
                         <div class="form-group">
                             <label for="id_proof_number">ID proof number</label>
-                            <input type="text" id="id_proof_number" name="id_proof_number"
+                            <input type="text" id="id_proof_number" name="id_proof_number" maxlength="100"
                                    value="<?php echo $editTenant ? htmlspecialchars($editTenant['id_proof_number']) : ''; ?>">
                         </div>
 
@@ -363,19 +371,15 @@ include 'header.php';
                             <?php if ($editTenant && !empty($editTenant['id_proof_file'])): ?>
                                 <p class="small-note">
                                     Existing file:
-                                    <a href="<?php echo htmlspecialchars($editTenant['id_proof_file']); ?>" target="_blank">
-                                        View
-                                    </a>
+                                    <a href="<?php echo htmlspecialchars($editTenant['id_proof_file']); ?>" target="_blank">View</a>
                                 </p>
                             <?php endif; ?>
                         </div>
 
                         <div class="form-group">
-                            <label for="tenant_status">Status *</label>
+                            <label for="tenant_status">Status</label>
                             <select id="tenant_status" name="tenant_status" required>
-                                <?php
-                                $curStatus = $editTenant ? $editTenant['tenant_status'] : 'New';
-                                ?>
+                                <?php $curStatus = $editTenant ? $editTenant['tenant_status'] : 'New'; ?>
                                 <option value="New"      <?php echo $curStatus === 'New' ? 'selected' : ''; ?>>New</option>
                                 <option value="Active"   <?php echo $curStatus === 'Active' ? 'selected' : ''; ?>>Active</option>
                                 <option value="Inactive" <?php echo $curStatus === 'Inactive' ? 'selected' : ''; ?>>Inactive</option>
@@ -384,22 +388,16 @@ include 'header.php';
 
                         <div class="form-actions">
                             <?php if ($editTenant): ?>
-                                <button type="submit" name="update_tenant" class="btn btn-primary">
-                                    Save changes
-                                </button>
+                                <button type="submit" name="update_tenant" class="btn btn-primary">Save changes</button>
                                 <a href="tenants.php" class="btn btn-secondary">Cancel</a>
                             <?php else: ?>
-                                <button type="submit" name="add_tenant" class="btn btn-primary">
-                                    Add tenant
-                                </button>
+                                <button type="submit" name="add_tenant" class="btn btn-primary">Add tenant</button>
                             <?php endif; ?>
                         </div>
-
-                        <p class="hint-text">
-                            After adding a tenant, go to the <a href="units.php">Units</a> page and click
-                            “Assign tenant” to link them to a unit.
-                        </p>
                     </form>
+                    <p class="hint-text">
+                        After adding a tenant, go to the <a href="units.php">Units</a> page and click "Assign tenant" to link them to a unit.
+                    </p>
                 </div>
             </div>
         </div>

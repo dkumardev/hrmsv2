@@ -1,4 +1,4 @@
-/* units.css */
+/* units.css - Complete Optimized */
 
 /* PAGE WRAPPER */
 .page-wrapper {
@@ -6,6 +6,7 @@
     padding-bottom: 32px;
 }
 
+/* HEADER */
 .page-header-row {
     display: flex;
     align-items: center;
@@ -79,12 +80,13 @@
     border: 1px solid #d1d5db;
     font-size: 0.9rem;
     background: #fff;
+    transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .filter-group input:focus,
 .filter-group select:focus {
     outline: none;
-    border-color: var(--primary);
+    border-color: #2563eb;
     box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
 }
 
@@ -92,6 +94,7 @@
     padding: 0.45rem 1.1rem;
     border-radius: 999px;
     font-size: 0.85rem;
+    line-height: 1;
 }
 
 /* 2-COLUMN LAYOUT */
@@ -151,11 +154,11 @@
     font-weight: 500;
 }
 
-/*.unit-building-floor {
+.unit-building-floor {
     font-size: 0.9rem;
     color: #4b5563;
     margin-bottom: 0.3rem;
-}*/
+}
 
 .unit-status-line {
     font-size: 0.9rem;
@@ -164,52 +167,40 @@
 
 .status-text {
     font-weight: 600;
+    padding: 0.15rem 0.4rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
 }
 
 .status-text-vacant {
-    color: #16a34a;  /* green */
+    background: #dcfce7;
+    color: #15803d;
 }
 
 .status-text-occupied {
-    color: #dc2626;  /* red */
-}
-
-
-.unit-meta-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    align-items: center;
-}
-
-/* STATUS */
-.status-badge {
-    padding: 0.25rem 0.6rem;
-    border-radius: 999px;
-    font-size: 0.8rem;
-    font-weight: 500;
-}
-
-.status-vacant {
-    background: #dcfce7;
-    color: #166534;
-}
-
-.status-occupied {
     background: #fee2e2;
-    color: #991b1b;
+    color: #b91c1c;
 }
 
-/* AMENITIES PILL (tooltip via title) */
-.unit-amenities-pill {
-    background: #fef3c7;
-    color: #92400e;
-    padding: 0.2rem 0.6rem;
-    border-radius: 999px;
-    font-size: 0.78rem;
-    font-weight: 500;
-    cursor: default;
+/* TENANT INFO (NEW) 
+.unit-tenant-info {
+    margin-top: 0.5rem;
+    padding: 0.6rem;
+    background: rgba(59, 130, 246, 0.08);
+    border-radius: 8px;
+    border-left: 3px solid #2563eb;
 }
+
+.unit-tenant-info strong {
+    font-size: 0.95rem;
+    color: #1e293b;
+    display: block;
+}
+
+.unit-tenant-info small {
+    font-size: 0.8rem;
+    color: #64748b;
+}*/
 
 /* ACTIONS */
 .unit-actions {
@@ -262,13 +253,14 @@
     border-radius: 10px;
     border: 1px solid #d1d5db;
     font-size: 0.9rem;
+    background: #ffffff;
     transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .form-group input:focus,
 .form-group select:focus {
     outline: none;
-    border-color: var(--primary);
+    border-color: #2563eb;
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
@@ -297,11 +289,11 @@
         flex-direction: column;
         align-items: flex-start;
     }
-
+    
     .dashboard-grid {
         grid-template-columns: 1fr;
     }
-
+    
     .filters-form {
         flex-direction: column;
         align-items: stretch;
@@ -313,50 +305,23 @@
         flex-direction: column;
         align-items: flex-start;
     }
-
+    
     .unit-actions {
         align-items: flex-start;
         width: 100%;
     }
-
+    
     .unit-actions-row {
         flex-wrap: wrap;
         width: 100%;
         justify-content: flex-start;
     }
-
-    .unit-meta-row {
-        flex-direction: column;
-        align-items: flex-start;
+    
+    .filters-form .btn-primary.btn-small,
+    .filters-form .btn-secondary.btn-small {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 80px;
     }
 }
-
-/* Small buttons in filter bar */
-.btn-small {
-    padding: 0.45rem 1.2rem;
-    border-radius: 999px;
-    font-size: 0.85rem;
-    line-height: 1;
-}
-
-/* Ensure primary and secondary small buttons look same size */
-.filters-form .btn-primary.btn-small,
-.filters-form .btn-secondary.btn-small {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 80px;
-}
-
-/* Optional: keep secondary outline look consistent */
-.filters-form .btn-secondary.btn-small {
-    background: #ffffff;
-    border-color: #2563eb;
-    color: #2563eb;
-}
-
-.filters-form .btn-secondary.btn-small:hover {
-    background: #2563eb;
-    color: #ffffff;
-}
-

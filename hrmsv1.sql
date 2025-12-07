@@ -70,4 +70,17 @@ CREATE TABLE unit_assignments (
         ON DELETE RESTRICT
 );
 
+CREATE TABLE rent_items (
+    id              INT AUTO_INCREMENT PRIMARY KEY,
+    assignment_id   INT NOT NULL,          -- FK → unit_assignments.id
+    month_start     DATE NOT NULL,         -- e.g. 2024-12-12
+    month_end       DATE NOT NULL,         -- e.g. 2025-01-12 (next month same day)
+    amount          DECIMAL(10,2) NOT NULL,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_rentitems_assignment
+        FOREIGN KEY (assignment_id) REFERENCES unit_assignments(id)
+        ON DELETE CASCADE
+);
+
+
 

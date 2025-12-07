@@ -1,0 +1,212 @@
+/* assign_tenant.css - EXACT buildings/units/tenants layout */
+
+/* PAGE WRAPPER */
+.page-wrapper {
+    padding-top: 10px;
+    padding-bottom: 32px;
+}
+
+/* HEADER */
+.page-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.page-title {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.page-subtitle {
+    font-size: 0.95rem;
+    color: #6b7280;
+}
+
+/* MESSAGE */
+.alert {
+    margin-bottom: 1rem;
+    padding: 0.6rem 0.9rem;
+    border-radius: 10px;
+    background: #ecfdf5;
+    border: 1px solid #bbf7d0;
+    color: #065f46;
+    font-size: 0.9rem;
+}
+
+/* 2-COLUMN LAYOUT */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: 1.8rem;
+    margin-top: 1rem;
+}
+
+/* CARD SECTIONS */
+.section {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 1.6rem 1.8rem;
+    box-shadow: 0 10px 30px rgba(15,23,42,0.06);
+}
+
+.section-title {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    color: #0f172a;
+}
+
+.section-subtitle {
+    font-size: 1rem;
+    margin: 1.5rem 0 1rem 0;
+    color: #111827;
+}
+
+/* UNIT DETAILS */
+.unit-details-card {
+    background: #f9fafb;
+    border-radius: 18px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.unit-main {
+    flex: 1;
+}
+
+.unit-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #111827;
+}
+
+.unit-meta {
+    font-size: 0.9rem;
+    color: #4b5563;
+    line-height: 1.6;
+}
+
+.status-text {
+    font-weight: 600;
+    padding: 0.15rem 0.4rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+}
+
+.status-text-vacant { background: #dcfce7; color: #15803d; }
+.status-text-occupied { background: #fee2e2; color: #b91c1c; }
+
+/* CURRENT TENANCY */
+.current-tenancy {
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: 12px;
+    padding: 1.2rem;
+    margin-top: 1rem;
+}
+
+.tenant-summary {
+    margin-bottom: 1rem;
+}
+
+.tenant-summary p {
+    margin: 0.25rem 0;
+    font-size: 0.95rem;
+}
+
+.end-tenancy-form h4 {
+    margin: 0 0 1rem 0;
+    color: #b91c1c;
+}
+
+/* EMPTY STATE */
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+}
+
+.empty-text {
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+/* FORMS */
+.form-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.form-group label {
+    font-size: 0.85rem;
+    color: #4b5563;
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 0.55rem 0.6rem;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    font-size: 0.9rem;
+    background: #ffffff;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 70px;
+}
+
+.form-actions {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.form-actions .btn {
+    min-width: 140px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+    .page-header-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
+    }
+}
