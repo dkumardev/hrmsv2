@@ -43,7 +43,7 @@ CREATE TABLE tenants (
     id_proof_type   VARCHAR(50)  NULL,          -- e.g. Aadhar, PAN, Voter ID
     id_proof_number VARCHAR(100) NULL,
     id_proof_file   VARCHAR(255) NULL,          -- e.g. id_proofs/deepak_1234567898.pdf
-    tenant_status   ENUM('Active','Inactive') NOT NULL DEFAULT 'Active',
+    tenant_status   ENUM('New','Active','Inactive') NOT NULL DEFAULT 'New',
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

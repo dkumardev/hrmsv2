@@ -21,7 +21,7 @@ $pageTitle = $pageTitle ?? 'MyProperty Manager';
 <header class="header">
     <div class="container header-content">
         <div class="logo">
-            <h2>MyPropertyManager</h2>
+            <a href="index.php" style="text-decoration: none;"><h2>MyPropertyManager</h2></a>
         </div>
 
         <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle navigation">
@@ -44,7 +44,7 @@ $pageTitle = $pageTitle ?? 'MyProperty Manager';
                 <span class="header-user">
                     <?php echo htmlspecialchars($_SESSION['owner_name'] ?? $_SESSION['owner_username']); ?>
                 </span>
-                <a href="logout.php" class="btn btn-secondary">Logout</a>
+                <a href="logout.php" class="btn btn-danger btn-outline-small">Logout</a>
             <?php else: ?>
                 <a href="login.php" class="btn btn-primary">Owner Login</a>
             <?php endif; ?>

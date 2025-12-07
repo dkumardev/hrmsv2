@@ -6,7 +6,7 @@
         </div>
         <div class="footer-right">
             <a href="login.php">Owner Login</a>
-			<a href="logout.php">Silent Logout</a>
+		<!--	<a href="logout.php">Silent Logout</a> -->
         </div>
     </div>
 </footer>

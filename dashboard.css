@@ -1,5 +1,6 @@
 /* dashboard.css */
 
+/* HERO WRAPPER */
 .dashboard-hero {
     background: linear-gradient(135deg, var(--dark) 0%, #020617 100%);
     color: #e5e7eb;
@@ -17,6 +18,7 @@
     align-items: center;
 }
 
+/* HERO TEXT */
 .dashboard-hero-text h1 {
     font-size: 1.9rem;
     font-weight: 600;
@@ -32,6 +34,7 @@
     margin-top: 0.4rem;
 }
 
+/* SUMMARY CARDS */
 .dashboard-hero-cards {
     display: grid;
     grid-template-columns: 1fr;
@@ -71,7 +74,7 @@
     text-decoration: underline;
 }
 
-/* Quick actions section */
+/* QUICK ACTIONS */
 .dashboard-actions-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -96,7 +99,7 @@
     margin-bottom: 0.7rem;
 }
 
-/* Roadmap section */
+/* ROADMAP */
 .dashboard-roadmap-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -120,10 +123,11 @@
     color: #4b5563;
 }
 
-/* Responsive tweaks */
+/* RESPONSIVE */
 @media (max-width: 900px) {
     .dashboard-hero-inner {
         grid-template-columns: 1fr;
+        gap: 1.5rem;
     }
 }
 
@@ -131,7 +135,12 @@
     .dashboard-hero {
         padding: 30px 0 40px;
     }
+
     .dashboard-hero-text h1 {
         font-size: 1.6rem;
+    }
+
+    .summary-card {
+        padding: 0.9rem 1rem;
     }
 }
